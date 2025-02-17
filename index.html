@@ -1,270 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/css/ol.css" type="text/css">
-    <style>
-      .map {
-        height: 90vh;
-        width: 100%;
-      }
-
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: white;
-        padding: 10px;
-        border: 1px solid #ccc;
-        z-index: 1000;
-      }
-
-      #controls label {
-        display: block;
-        margin-bottom: 5px;
-      }
-
-      #controls select,
-      #controls input {
-        margin-bottom: 10px;
-        width: 100%;
-      }
-
-      #minAcreage, #maxAcreage {
-        width: calc(100% - 10px);
-        margin-bottom: 10px;
-      }
-
-      #legend {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        background: white;
-        padding: 10px;
-        border: 1px solid #ccc;
-        z-index: 1000;
-      }
-
-      #layerToggle {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: white;
-        padding: 10px;
-        border: 1px solid #ccc;
-        z-index: 1000;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/css/ol.css">
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.15.1/build/ol.js"></script>
-    <title>New Jersey Percels</title>
-  </head>
-  <body>
-    <h2>My Map</h2>
-    <div id="map" class="map"></div>
-    <div id="controls">
-      <label for="propertyClass">Property Class:</label>
-      <select id="propertyClass">
-        <option value="">All</option>
-      </select>
+    <title>New Jersey Parcels</title>
+</head>
+<body>
 
-      <label for="minAcreage">Minimum Acreage:</label>
-      <input type="number" id="minAcreage" min="0" value="0">
+    <!-- Navigation Bar -->
+    <nav id="navbar">
+        <h2>New Jersey Parcels</h2>
+        <div id="controls">
+            <label for="propertyClass">Property Class:</label>
+            <select id="propertyClass">
+                <option value="">All</option>
+            </select>
+            <label for="Zone">Zone:</label>
+            <select id="Zone">
+              <option value="">All</option>
+            </select>
 
-      <label for="maxAcreage">Maximum Acreage:</label>
-      <input type="number" id="maxAcreage" min="0" value="100">
+            <label for="minAcreage">Min Acreage:</label>
+            <input type="number" id="minAcreage" min="0" value="0">
 
-      <button id="applyFilters">Apply Filters</button>
+            <label for="maxAcreage">Max Acreage:</label>
+            <input type="number" id="maxAcreage" min="0" value="100">
+
+            <button id="applyFilters">Apply Filters</button>
+        </div>
+    </nav>
+
+    <div id="container">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <div id="legend">
+                <h3>Legend</h3>
+                <div id="legend-items">
+                    <h4>Property Class</h4>
+                </div>
+            </div>
+
+            <div id="layerToggle">
+                <h3>Toggle Layers</h3>
+                <label><input type="checkbox" id="osmLayerToggle" checked> OSM Layer</label><br>
+                <label><input type="checkbox" id="parcelsLayerToggle" unchecked> Parcels Basemap</label><br>
+                <div id="geojsonLayerToggles"></div>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map-container">
+            <div id="map" class="map"></div>
+        </main>
     </div>
-    <div id="legend">
-      <h3>Legend</h3>
-      <div id="legend-items"></div>
-    </div>
-    <div id="layerToggle">
-      <h3>Toggle Layers</h3>
-      <label><input type="checkbox" id="osmLayerToggle" checked> OSM Layer</label><br>
-      <label><input type="checkbox" id="parcelsLayerToggle" checked> Parcels Basemap</label><br>
-      <div id="geojsonLayerToggles"></div>
-    </div>
-    <script type="text/javascript">
-      // Initialize the map
-      const osmLayer = new ol.layer.Tile({
-        source: new ol.source.OSM()
-      });
 
-      const parcelsLayer = new ol.layer.Tile({
-        source: new ol.source.TileArcGISRest({
-          url: 'https://maps.nj.gov/arcgis/rest/services/Basemap/Parcels_NJ/MapServer'
-        })
-      });
-
-      const colorMap = {
-        'Vacant Land': 'rgba(200, 200, 200, 0.5)',
-        'Residential': 'rgba(255, 0, 0, 0.5)',
-        'Public School Property': 'rgba(0, 255, 0, 0.5)',
-        'Public Property': 'rgba(0, 0, 255, 0.5)',
-        'Other School Property': 'rgba(255, 255, 0, 0.5)',
-        'Other Exempt Properties': 'rgba(255, 165, 0, 0.5)',
-        'Industrial': 'rgba(128, 0, 128, 0.5)',
-        'Commercial': 'rgba(0, 255, 255, 0.5)',
-        'Class II Railroad Property': 'rgba(255, 0, 255, 0.5)',
-        'Class I Railroad Property': 'rgba(128, 128, 0, 0.5)',
-        'Church & Charitable Properties': 'rgba(0, 128, 128, 0.5)',
-        'Cemeteries & Graveyards': 'rgba(128, 128, 128, 0.5)',
-        'Apartment': 'rgba(0, 0, 128, 0.5)'
-      };
-
-      const geojsonFiles = [
-        { name: 'Westfield', path: 'Geojson/westfield.geojson' },
-        {name: 'Summit',path:'Geojson/summiit.geojson'},
-        {name: 'Montclair',path:'Geojsonmontaclair.geojson'},
-        {name: 'Millburn',path:'Geojson/millburn.geojson'},
-        {name: 'Maplewood',path:'Geojson/maplewood.geojson'},
-        {name: 'Livingston',path:'Geojson/livingston.geojson'},
-        // Add other GeoJSON files here
-        // { name: 'Another Layer', path: 'Geojson/another_layer.geojson' }
-      ];
-
-      const geojsonLayers = geojsonFiles.map(file => {
-        const source = new ol.source.Vector({
-          url: file.path,
-          format: new ol.format.GeoJSON()
-        });
-
-        const layer = new ol.layer.Vector({
-          source,
-          style: function (feature) {
-            const propertyClass = feature.get('property_class_code_name');
-            const color = colorMap[propertyClass] || 'rgba(0, 0, 0, 0.5)';
-            return new ol.style.Style({
-              fill: new ol.style.Fill({ color }),
-              stroke: new ol.style.Stroke({ color: 'black', width: 1 })
-            });
-          }
-        });
-
-        source.once('change', function () {
-          if (source.getState() === 'ready') {
-            const extent = source.getExtent();
-            map.getView().fit(extent, { padding: [50, 50, 50, 50] });
-          }
-        });
-
-        const toggleDiv = document.getElementById('geojsonLayerToggles');
-        const toggle = document.createElement('label');
-        toggle.innerHTML = `<br><input type="checkbox" checked> ${file.name}`;
-        toggle.querySelector('input').addEventListener('change', function () {
-          layer.setVisible(this.checked);
-        });
-        toggleDiv.appendChild(toggle);
-
-        return layer;
-      });
-
-      const map = new ol.Map({
-        target: 'map',
-        layers: [osmLayer, parcelsLayer, ...geojsonLayers],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([-74.4057, 40.0583]), // Default center near New Jersey
-          zoom: 8
-        }),
-        interactions: ol.interaction.defaults({
-          dragPan: true, // Allow panning
-          mouseWheelZoom: true // Allow zooming
-        })
-      });
-
-      // Make GeoJSON features clickable
-      map.on('singleclick', function (evt) {
-        map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-          const props = feature.getProperties();
-          alert(`
-            County District: ${props.county_district || 'N/A'}
-            Property Block ID: ${props.property_id_blk || 'N/A'}
-            Property Lot ID: ${props.property_id_lot || 'N/A'}
-            Property Class: ${props.property_class_code_name || 'N/A'}
-            Property Location: ${props.property_location || 'N/A'}
-            ZIP Code: ${props.zip_code || 'N/A'}
-            Calculated Acreage: ${props.calculated_acreage || 'N/A'}
-          `);
-        });
-      });
-
-      // Legend creation
-      const legendItems = document.getElementById('legend-items');
-      Object.keys(colorMap).forEach(key => {
-        const legendItem = document.createElement('div');
-        legendItem.innerHTML = `<span style="display: inline-block; width: 20px; height: 20px; background: ${colorMap[key]}; margin-right: 5px;"></span>${key}`;
-        legendItems.appendChild(legendItem);
-      });
-
-      // Layer toggling
-      document.getElementById('osmLayerToggle').addEventListener('change', function () {
-        osmLayer.setVisible(this.checked);
-      });
-
-      document.getElementById('parcelsLayerToggle').addEventListener('change', function () {
-        parcelsLayer.setVisible(this.checked);
-      });
-
-      // Apply filters to the map
-      function applyFilters() {
-        geojsonLayers.forEach(layer => {
-          const source = layer.getSource();
-          source.forEachFeature(feature => {
-            const selectedClass = document.getElementById('propertyClass').value;
-            const minAcreage = parseFloat(document.getElementById('minAcreage').value);
-            const maxAcreage = parseFloat(document.getElementById('maxAcreage').value);
-
-            const propertyClass = feature.get('property_class_code_name');
-            const acreage = parseFloat(feature.get('calculated_acreage'));
-
-            const matchesClass = !selectedClass || propertyClass === selectedClass;
-            const matchesAcreage = !isNaN(acreage) && acreage >= minAcreage && acreage <= maxAcreage;
-
-            feature.setStyle(matchesClass && matchesAcreage ? null : new ol.style.Style({}));
-          });
-        });
-      }
-
-      document.getElementById('applyFilters').addEventListener('click', applyFilters);
-
-      // Populate the property class dropdown and acreage fields
-      geojsonLayers.forEach(layer => {
-        const source = layer.getSource();
-        source.once('featuresloadend', () => {
-          const features = source.getFeatures();
-          const propertyClasses = new Set();
-          let minAcreage = Infinity;
-          let maxAcreage = -Infinity;
-
-          features.forEach(feature => {
-            const propertyClass = feature.get('property_class_code_name');
-            const acreage = parseFloat(feature.get('calculated_acreage'));
-
-            if (propertyClass) {
-              propertyClasses.add(propertyClass);
-            }
-
-            if (!isNaN(acreage)) {
-              minAcreage = Math.min(minAcreage, acreage);
-              maxAcreage = Math.max(maxAcreage, acreage);
-            }
-          });
-
-          const propertyClassSelect = document.getElementById('propertyClass');
-          propertyClasses.forEach(classCode => {
-            if (![...propertyClassSelect.options].some(option => option.value === classCode)) {
-              const option = document.createElement('option');
-              option.value = classCode;
-              option.textContent = classCode;
-              propertyClassSelect.appendChild(option);
-            }
-          });
-
-          document.getElementById('minAcreage').value = Math.min(document.getElementById('minAcreage').value, minAcreage);
-          document.getElementById('maxAcreage').value = Math.max(document.getElementById('maxAcreage').value, maxAcreage);
-        });
-      });
-    </script>
-  </body>
+    <script src="main.js"></script>
+</body>
 </html>
