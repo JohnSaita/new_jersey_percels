@@ -32,7 +32,7 @@ const colorMap = {
   'Apartment': 'rgba(0, 0, 128, 0.5)'
 };
 
-const Summit = {
+const SummitZones = {
   "R-45": "Single Family Residential",
   "R-25": "Single Family Residential",
   "R-15": "Single Family Residential",
@@ -59,7 +59,7 @@ const Summit = {
   "G": "Golf"
 };
 // Define zoning categories with descriptions
-const Maplewood = {
+const MaplewoodZones = {
   "PS": "Parkside",
   "R-1-4": "Residential 1 Family 4,000 Sf",
   "R-1-5": "Residential 1 Family 5,000 Sf",
@@ -84,7 +84,7 @@ const Maplewood = {
   "TTARA": "Tara Toomey's Automotive Redevelopment Area",
   "7PAW": "7 Parker Avenue West Redevelopment Area"
 };
-const Millburn = {
+const MillburnZones = {
   "R-3": "Residential 29,000 Sq. Ft.",
   "R-4": "Residential 20,000 Sq. Ft.",
   "R-5": "Residential 14,500 Sq. Ft.",
@@ -107,7 +107,7 @@ const Millburn = {
   "CE": "Conservation - Educational - Cultural"
 };
 
-const Montclair = {
+const MontclairZones = {
   "C-1": "Central Business-Center Area",
   "C-1": "Central Business-Community Area",
   "C-2": "General Business & Light Manufacturing",
@@ -123,6 +123,84 @@ const Montclair = {
   "R-O": "Mountainside",
   "R-A": "Redevelopment Area",
   "P": "Public"
+};
+const WestfieldZones = {
+  "C": "Commercial",
+  "CBD": "Central Business District",
+  "GB-1": "General Business - 1",
+  "GB-2": "General Business - 2",
+  "GB-3": "General Business - 3",
+  "NA-AH": "Neighborhood Affordable Housing",
+  "NS-AMFH": "Neighborhood Service - Affordable Multi-Family Housing",
+  "O-1": "Office - 1",
+  "O-2": "Office - 2",
+  "P-1": "Public - 1",
+  "P-2": "Public - 2",
+  "RA-1": "Residential Area - 1",
+  "RA-2": "Residential Area - 2",
+  "RA-3": "Residential Area - 3",
+  "RA-4": "Residential Area - 4",
+  "RA-5A": "Residential Area - 5A",
+  "RA-5B": "Residential Area - 5B",
+  "RA-5C": "Residential Area - 5C",
+  "RA-6": "Residential Area - 6",
+  "RM-12": "Residential Multi-Family - 12",
+  "RM-6": "Residential Multi-Family - 6",
+  "RM-6D": "Residential Multi-Family - 6D",
+  "RM-8": "Residential Multi-Family - 8",
+  "RS-10": "Residential Single-Family - 10",
+  "RS-12": "Residential Single-Family - 12",
+  "RS-16": "Residential Single-Family - 16",
+  "RS-24": "Residential Single-Family - 24",
+  "RS-40": "Residential Single-Family - 40",
+  "RS-6": "Residential Single-Family - 6",
+  "RS-8": "Residential Single-Family - 8",
+  "WBS-AMFH": "Westfield Business Service - Affordable Multi-Family Housing"
+};
+const LivingstonZones = {
+  "Overlay Districts": "Cluster Zoning with R-2 Zoning Standards",
+  "AH": "Adult Housing District",
+  "B-1": "Central Business District",
+  "B-2": "General Business District",
+  "B-3": "Highway Business District",
+  "B-4": "Neighborhood Business District",
+  "CI": "Commercial Industrial District",
+  "DS": "Designed Shopping Center District",
+  "DS-2": "Designed Shopping Center District",
+  "HH": "Hospital Health Care District",
+  "LI": "Limited Industrial District",
+  "LTC": "Livingston Town Center - Mixed Use District",
+  "PB": "Professional Building District",
+  "PB-1": "Professional Office District",
+  "PB-2": "Professional Office District",
+  "PB-3": "Professional Office District",
+  "R-1": "Residential District",
+  "R-2": "Residential District",
+  "R-3": "Residential District",
+  "R-4": "Residential District",
+  "R-5A": "Residential District",
+  "R-5B": "Residential District",
+  "R-5C": "Residential District",
+  "R-5D": "Residential District",
+  "R-5E": "Residential District",
+  "R-5F": "Residential District",
+  "R-5G": "Residential District",
+  "R-5H": "Residential District",
+  "R-5I": "Residential District",
+  "R-5J": "Residential District",
+  "R-5K": "Residential District",
+  "R-5L": "Residential District",
+  "R-5M": "Residential District",
+  "R-5N": "Residential District",
+  "R-5O": "Residential District",
+  "R-5P": "Residential District",
+  "R-5Q": "Residential District",
+  "R-6": "Residential District",
+  "SCH": "Senior Citizen Housing District",
+  "RL-1": "Research Laboratory District",
+  "RL-2": "Research Laboratory District",
+  "RAO": "Residential District",
+  "WRC": "Water Conservation"
 };
 
 
@@ -324,7 +402,7 @@ function updateLegend() {
 geojsonLayers.forEach((layer, index) => {
     if (layer.getVisible()) {
         const { name } = geojsonFiles[index];
-        const zoneData = name === 'Summit' ? Summit : name === 'Maplewood' ? Maplewood : name === 'Millburn' ? Millburn : name === 'Montclair' ? Montclair: null;
+        const zoneData = name === 'Summit' ? SummitZones : name === 'Maplewood' ? MaplewoodZones : name === 'Millburn' ? MillburnZones : name === 'Montclair' ? MontclairZones:name === 'Westfield' ?WestfieldZones :name === 'Livingston' ? LivingstonZones: null;
 
         if (zoneData) {
             const legendItem = document.createElement('div');
